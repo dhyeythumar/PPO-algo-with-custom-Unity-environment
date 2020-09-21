@@ -22,7 +22,7 @@ class Test_FindflagAgent:
 
     def __init__(self, env: UnityEnvironment):
 
-        MODEL_NAME = self.get_file()
+        MODEL_NAME = self.get_model_name()
         self.env = env
         self.env.reset()   # without this env won't work
         self.behavior_name = self.env.get_behavior_names()[0]
@@ -32,15 +32,22 @@ class Test_FindflagAgent:
 
         self.actor = load_model(MODEL_NAME, custom_objects={'loss': 'categorical_hinge'})
 
-    def get_file(self):
+    def get_model_name(self) -> str:
         _dir = "./training_data/model/" + RUN_ID
         basepath = Path(_dir)
         files_in_basepath = (entry for entry in basepath.iterdir() if entry.is_file())
+
+        # get the latest actor's saved model file name. 
         for item in files_in_basepath:
             if (item.name.find("actor") != -1):
-                return _dir + "/" + item.name
+                name = _dir + "/" + item.name
 
-    def check_done(self, step_result):
+        print("-"*100)
+        print("\t\tUsing {} saved model for testing.".format(name))
+        print("-"*100)
+        return name
+
+    def check_done(self, step_result) -> bool:
         if len(step_result[1]) != 0:
             return True
         else:
