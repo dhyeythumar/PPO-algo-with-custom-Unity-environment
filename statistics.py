@@ -42,6 +42,9 @@ class Memory:
         self.critic_lrs.clear()
 
     def terminal_logs(self, step):
+        if (len(self.rewards) == 0):
+            self.rewards.append(0)
+
         print("[INFO]\tSteps: {}\tMean Reward: {:0.3f}\tStd of Reward: {:0.3f}".format(step, np.mean(self.rewards), np.std(self.rewards)))
 
     def tensorboard_logs(self, step):
@@ -49,7 +52,7 @@ class Memory:
         self.writer.add_scalar('Environment/Episode_length', np.mean(self.episode_lens), step)
 
         self.writer.add_scalar('Learning_rate/Actor_model', np.mean(self.actor_lrs), step)
-        self.writer.add_scalar('Learning_rate/Critic _model', np.mean(self.critic_lrs), step)
+        self.writer.add_scalar('Learning_rate/Critic_model', np.mean(self.critic_lrs), step)
 
         self.writer.add_scalar('Loss/Policy_loss', np.mean(self.actor_losses), step)
         self.writer.add_scalar('Loss/Value_loss', np.mean(self.critic_losses), step)

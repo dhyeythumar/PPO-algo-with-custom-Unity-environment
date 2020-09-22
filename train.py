@@ -40,7 +40,7 @@ EPSILON         = 0.2       # (LOSS_CLIPPING)
 CRITIC_DISCOUNT = 0.5
 BETA            = 0.001     # (ENTROPY_BETA)    5e-3
 
-# I don't know what to do with this! 😅😯 [but its used in ML-Agents config file]
+# I don't know what to do with this! 😅 [but its used in ML-Agents trainer_config.yaml file]
 # I think its size of mini_batch used for .predict_on_batch() method.
 TIME_HORIZON    = 128
 # used for RL with RNN
@@ -50,26 +50,32 @@ TIME_HORIZON    = 128
 
 class Actor_Critic: # keras functional model
 
-    # TODO :: verify this loss function 😐
+    # TODO :: verify this loss function, cos its giving 0's only. 😐
     @staticmethod
-    def ppo_loss(old_prediction, advantage, reward, value):
+    def ppo_loss(oldpolicy_probs, advantage, reward, value):
         def loss(y_true, y_pred):
-            # print(type(old_prediction), type(advantage), type(reward), type(value), type(y_true), type(y_pred))
-            # <class 'tensorflow.python.framework.ops.Tensor'> <class 'tensorflow.python.framework.ops.Tensor'> <class 'tensorflow.python.framework.ops.Tensor'> <class 'tensorflow.python.framework.ops.Tensor'> <class 'tensorflow.python.framework.ops.EagerTensor'> <class 'tensorflow.python.framework.ops.EagerTensor'>
-            newpolicy_probs = y_pred
-            ratio = K.exp(K.log(newpolicy_probs + 1e-10) - K.log(old_prediction + 1e-10))
-            p1 = ratio * advantage
-            p2 = K.clip(ratio, min_value=1-EPSILON, max_value=1+EPSILON) * advantage
-            actor_loss = -K.mean(K.minimum(p1, p2))
+            newpolicy_probs = y_true * y_pred
+            old_prob = y_true * oldpolicy_probs
+            # print("newpolicy_probs: ", K.get_value(newpolicy_probs))
+
+            ratio = newpolicy_probs / (old_prob + 1e-10)
+            clip_ratio = K.clip(ratio, min_value=1 - EPSILON, max_value=1 + EPSILON)
+            surrogate1 = ratio * advantage
+            surrogate2 = clip_ratio * advantage
+            
+            # single values
+            actor_loss = -K.mean(K.minimum(surrogate1, surrogate2))
             critic_loss = K.mean(K.square(reward - value))
-            total_loss = critic_loss * CRITIC_DISCOUNT + actor_loss - BETA * K.mean(-(newpolicy_probs * K.log(newpolicy_probs + 1e-10)))
+            entropy_loss = K.mean(-(newpolicy_probs * K.log(K.abs(newpolicy_probs) + 1e-10)))
+
+            total_loss = tf.constant(CRITIC_DISCOUNT) * critic_loss + actor_loss - tf.constant(BETA) * entropy_loss
             return total_loss
         return loss
 
     @staticmethod
     def actor_model(input_dims, output_dims):
         state = Input(shape=(input_dims,), name='state_input')
-        old_prediction = Input(shape=(output_dims,), name='old_prediction_input')
+        oldpolicy_probs = Input(shape=(output_dims,), name='old_prediction_input')
         advantage = Input(shape=(1,), name='advantage_input')
         reward = Input(shape=(1,), name='reward_input')
         value = Input(shape=(1,), name='value_input')
@@ -79,10 +85,10 @@ class Actor_Critic: # keras functional model
             x = Dense(HIDDEN_UNITS, activation='tanh')(x)
         policy = Dense(output_dims, activation='tanh', name='policy')(x)
 
-        actor_network = Model(inputs=[state, old_prediction, advantage, reward, value], outputs=[policy])
+        actor_network = Model(inputs=[state, oldpolicy_probs, advantage, reward, value], outputs=[policy])
         actor_network.compile(optimizer=Adam(lr=LEARNING_RATE), 
             loss=Actor_Critic.ppo_loss(
-                old_prediction=old_prediction,
+                oldpolicy_probs=oldpolicy_probs,
                 advantage=advantage,
                 reward=reward,
                 value=value),
@@ -143,7 +149,7 @@ class FindflagAgent:
 
         if(latest == None):
             print("-"*100)
-            print("[INFO]\tNO saved model to resume the training.")
+            print("[INFO]\tNO saved model to resume the training. Starting with new traning process.")
             print("-"*100)
             return 0 
         else:
@@ -196,27 +202,23 @@ class FindflagAgent:
             # print("DONE - reward",reward)
         return next_state, reward, done
 
-    def get_action(self, state: np.ndarray, train: bool) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-
-        action_probs = self.actor.predict([state, self.dummy_n, self.dummy_1, self.dummy_1, self.dummy_1], steps=1)  # (1, 2)
-
+    def get_action(self, action_probs: np.ndarray, train: bool):
         if train is True:
             action = action_probs[0] + np.random.normal(loc=0, scale=1.0, size=action_probs[0].shape)  # shape(2,)
         else:
             action = action_probs[0]
 
         action = np.clip(action, -1, 1)  # just for confirmation
+        return np.reshape(action, (1, self.n_actions)), action.copy()
 
-        return np.reshape(action, (1, self.n_actions)), action.copy(), action_probs
-
-    def fill_buffer(self):  # fill the buffer to 
+    def fill_buffer(self):  # fill the buffer
         states          = []
         actions         = []
         old_predictions = []
         rewards         = []
         values          = []
         masks           = []
-        episode_lens     = []
+        episode_lens    = []
         counter         = 0
 
         self.env.reset()
@@ -224,12 +226,15 @@ class FindflagAgent:
         state = step_result[0].obs[0]  # observation/state : shape(1, 52)
 
         while len(states) < BUFFER_SIZE:
-            action, action_matrix, action_probs = self.get_action(state, True)
+
+            action_probs = self.actor.predict([state, self.dummy_n, self.dummy_1, self.dummy_1, self.dummy_1], steps=1)  # (1, 2)
+            q_value = self.critic.predict([state], steps=1)
+
+            action, action_matrix = self.get_action(action_probs, True)
             # applying then actions & then step the env.
             next_state, reward, done = self.step(action)
             mask = not done
 
-            q_value = self.critic.predict(state, steps=1)
             # if len(states) % 100 == 0:
             #     print('Itr :: ' + str(len(states)) + ', reward :: ' + str(reward) + ', q_val :: ' + str(q_value))
             states.append(state)
@@ -255,14 +260,14 @@ class FindflagAgent:
         discounted_returns, advantages = self.get_advantages(values, masks, rewards)
 
         # reshaping
-        states = np.reshape(states, (len(states), self.state_dims))
-        actions = np.reshape(actions, (len(actions), self.n_actions))
-        old_predictions = np.reshape(old_predictions, (len(old_predictions), self.n_actions))
+        states = np.reshape(states, (BUFFER_SIZE, self.state_dims))
+        actions = np.reshape(actions, (BUFFER_SIZE, self.n_actions))
+        old_predictions = np.reshape(old_predictions, (BUFFER_SIZE, self.n_actions))
 
-        rewards = np.reshape(rewards, (-1, 1))
+        rewards = np.reshape(rewards, (BUFFER_SIZE, 1))
         values = np.reshape(values, (len(values), 1))
-        advantages = np.reshape(advantages, (len(advantages), 1))
-        discounted_returns = np.reshape(discounted_returns, (len(discounted_returns), 1))
+        advantages = np.reshape(advantages, (BUFFER_SIZE, 1))
+        discounted_returns = np.reshape(discounted_returns, (BUFFER_SIZE, 1))
 
         # print(states.shape, actions.shape, old_predictions.shape, values.shape, rewards.shape, discounted_returns.shape, advantages.shape)
         return {
@@ -270,7 +275,7 @@ class FindflagAgent:
             "actions": actions,
             "old_predictions": old_predictions,
             "rewards": rewards,
-            "values": values,
+            "values": values[:-1],
             "advantages": advantages,
             "discounted_returns": discounted_returns,
             "episode_lens": episode_lens
@@ -281,7 +286,7 @@ class FindflagAgent:
 
         if RESUME == True:
             start_pt = self.load_model_weights()
-        step = 1 if (start_pt == 0) else start_pt-5
+        step = 1 if (start_pt == 0) else start_pt+1
 
         try:
             while step <= MAX_STEPS:
@@ -298,7 +303,7 @@ class FindflagAgent:
                 episode_lens        = buffer["episode_lens"]
 
                 actor_loss = self.actor.fit(
-                    [states, old_predictions, advantages, rewards, values[:-1]], [actions],
+                    [states, old_predictions, advantages, rewards, values], [actions],
                     batch_size=BATCH_SIZE,
                     shuffle=False, epochs=NUM_EPOCH, verbose=0
                 )
@@ -341,9 +346,9 @@ class FindflagAgent:
             self.memory.clear_memory()
             # save checkpoint logs
             self.save_model_weights(step)
-
-        self.save_model(step)
-        self.env.close()
+        finally:
+            self.save_model(step)
+            self.env.close()
 
 
 if __name__ == '__main__':
