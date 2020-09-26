@@ -34,28 +34,27 @@ These are some details which you should know before hand. And I think without kn
 - Observation/State space: Vectorized     (Unlike Image)
 - Action space: Continuous [shape(1, 2)]  (Unlike discrete)
 - Reward System: 
-    - -(1.0/MaxStep) per step (MaxStep is used to reset the env irrespective of achieving the goal state) & the same reward is used if the agent crashes into the walls.
-    <br>
+    - (1.0/MaxStep) per step (MaxStep is used to reset the env irrespective of achieving the goal state) & the same reward is used if the agent crashes into the walls.
     - +2 is the agent reaches the goal state.
 
 
 ## Setup Instructions
 Install the ML-Agents github repo [release_1_branch](https://github.com/Unity-Technologies/ml-agents/tree/release_1_branch), but if you want to use the different branch version then modify the python APIs to interact with the environment.
 
-- Clone this repos:
+Clone this repos:
 ```bash
 $ git clone --branch release_1 https://github.com/Unity-Technologies/ml-agents.git
 
 $ git clone https://github.com/Dhyeythumar/PPO-algo-with-custom-Unity-environment.git
 ```
 
-- Create and activate the python virtual environment:
+Create and activate the python virtual environment:
 ```bash
 $ python -m venv myvenv
 $ myvenv\Scripts\activate
 ```
 
-- Install the dependencies:
+Install the dependencies:
 ```bash
 $ pip install -e ./ml-agents/ml-agents-envs
 $ pip install tensorflow
@@ -93,6 +92,6 @@ So I have started working on the next phase of this project, which will include 
 Licensed under the [MIT License](./LICENSE).
 
 
-## Acknowledgements :innocent:
+## Acknowledgements
 1. [Unity ML-Agents Python Low Level API](https://github.com/Unity-Technologies/ml-agents/blob/release_1_branch/docs/Python-API.md)
 2. [rl-bot-football](https://github.com/ChintanTrivedi/rl-bot-football)
