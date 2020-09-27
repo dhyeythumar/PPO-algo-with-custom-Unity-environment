@@ -14,7 +14,7 @@ import tensorflow as tf
 
 
 # Name of the Unity environment binary to be launched
-ENV_NAME        = "./build_file/Learning-Agents--r1"
+ENV_NAME        = "./rl_env_binary/Windows_build/Learning-Agents--r1"
 RUN_ID          = "train-1"
 
 

@@ -16,7 +16,7 @@ from keras import backend as K
 
 
 # Name of the Unity environment binary to be launched
-ENV_NAME        = "./build_file/Learning-Agents--r1"
+ENV_NAME        = "./rl_env_binary/Windows_build/Learning-Agents--r1"
 RUN_ID          = "train-1"
 RESUME          = True      # resume the training process.
 
@@ -290,7 +290,7 @@ class FindflagAgent:
 
         try:
             while step <= MAX_STEPS:
-                # buffer = {states, actions, old_predictions, rewards, values, advantages, discounted_returns)
+                # buffer = {states, actions, old_predictions, rewards, values, advantages, discounted_returns}
                 buffer = self.fill_buffer()
 
                 states              = buffer["states"]
@@ -305,11 +305,11 @@ class FindflagAgent:
                 actor_loss = self.actor.fit(
                     [states, old_predictions, advantages, rewards, values], [actions],
                     batch_size=BATCH_SIZE,
-                    shuffle=False, epochs=NUM_EPOCH, verbose=0
+                    shuffle=False, epochs=NUM_EPOCH, verbose=1
                 )
                 critic_loss = self.critic.fit(
                     [states], [discounted_returns], batch_size=BATCH_SIZE,
-                    shuffle=False, epochs=NUM_EPOCH, verbose=0
+                    shuffle=False, epochs=NUM_EPOCH, verbose=1
                 )
 
                 # TODO :: check actor_loss
