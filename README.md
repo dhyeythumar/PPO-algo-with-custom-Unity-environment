@@ -8,9 +8,12 @@
 > **Important details about this repository:**
 > - Unity engine version used to build the environment = [2019.3.15f1](https://unity3d.com/get-unity/download/archive)
 > - ML-Agents branch = [release_1](https://github.com/Unity-Technologies/ml-agents/tree/release_1_branch)
-> - Environment name = [Learning-Agents--r1.exe](https://github.com/Dhyeythumar/PPO-algo-with-custom-Unity-environment/tree/main/build_file) (env. provided in this repo)
+> - Environment binary:
+>      - For Windows = [Learning-Agents--r1.exe](https://github.com/Dhyeythumar/PPO-algo-with-custom-Unity-environment/tree/main/rl_env_binary/Windows_build)
+>      - For Linux(Headless/Server build) = [RL-agent.x86_64](https://github.com/Dhyeythumar/PPO-algo-with-custom-Unity-environment/tree/main/rl_env_binary/Linux_headless_build)
+>      - For Linux(Normal build) = This will be uploaded soon.
 
-**For now, the environment is only compatible with windows. I will soon upload the binary files for the Linux system.**
+**Windows environment binary is used in this code. So if you want to use the Linux environment binary then change the ENV_NAME in train.py & test.py files to the correct path pointing to that binary stored [over here](https://github.com/Dhyeythumar/PPO-algo-with-custom-Unity-environment/tree/main/rl_env_binary).**
 
 
 ## What’s In This Document
