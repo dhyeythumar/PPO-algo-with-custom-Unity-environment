@@ -9,11 +9,11 @@
 > - Unity engine version used to build the environment = [2019.3.15f1](https://unity3d.com/get-unity/download/archive)
 > - ML-Agents branch = [release_1](https://github.com/Unity-Technologies/ml-agents/tree/release_1_branch)
 > - Environment binary:
->      - For Windows = [Learning-Agents--r1.exe](https://github.com/Dhyeythumar/PPO-algo-with-custom-Unity-environment/tree/main/rl_env_binary/Windows_build)
->      - For Linux(Headless/Server build) = [RL-agent.x86_64](https://github.com/Dhyeythumar/PPO-algo-with-custom-Unity-environment/tree/main/rl_env_binary/Linux_headless_build)
->      - For Linux(Normal build) = This will be uploaded soon.
+>      - For Windows = [Learning-Agents--r1 (.exe)](https://github.com/Dhyeythumar/PPO-algo-with-custom-Unity-environment/tree/main/rl_env_binary/Windows_build)
+>      - For Linux(Headless/Server build) = [RL-agent (.x86_64)](https://github.com/Dhyeythumar/PPO-algo-with-custom-Unity-environment/tree/main/rl_env_binary/Linux_headless_build)
+>      - For Linux(Normal build) = [RL-agent (.x86_64)](https://github.com/Dhyeythumar/PPO-algo-with-custom-Unity-environment/tree/main/rl_env_binary/Linux_build)
 
-**Windows environment binary is used in this code. So if you want to use the Linux environment binary then change the ENV_NAME in train.py & test.py files to the correct path pointing to that binary stored [over here](https://github.com/Dhyeythumar/PPO-algo-with-custom-Unity-environment/tree/main/rl_env_binary).**
+**Windows environment binary is used in this repo. But if you want to use the Linux environment binary, then change the ENV_NAME in train.py & test.py scripts to the correct path pointing to those binaries stored [over here](https://github.com/Dhyeythumar/PPO-algo-with-custom-Unity-environment/tree/main/rl_env_binary).**
 
 
 ## What’s In This Document
@@ -35,14 +35,15 @@
 These are some details which you should know before hand. And I think without knowing this, you might get confused because some of the Keras implementations are environment-dependent.
 
 - Observation/State space: Vectorized     (Unlike Image)
-- Action space: Continuous [shape(1, 2)]  (Unlike discrete)
+- Action space: Continuous  (Unlike discrete)
+- Action shape: (num of agents, 2)   (Here num of agents alive at every env step is 1, i.e shape(1, 2))
 - Reward System: 
     - (1.0/MaxStep) per step (MaxStep is used to reset the env irrespective of achieving the goal state) & the same reward is used if the agent crashes into the walls.
-    - +2 is the agent reaches the goal state.
+    - +2 if the agent reaches the goal state.
 
 
 ## Setup Instructions
-Install the ML-Agents github repo [release_1_branch](https://github.com/Unity-Technologies/ml-agents/tree/release_1_branch), but if you want to use the different branch version then modify the python APIs to interact with the environment.
+Install the ML-Agents github repo [release_1 branch](https://github.com/Unity-Technologies/ml-agents/tree/release_1_branch), but if you want to use the different branch version then modify the python APIs to interact with the environment.
 
 Clone this repos:
 ```bash
