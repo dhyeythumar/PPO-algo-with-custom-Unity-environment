@@ -34,9 +34,12 @@
 ## Environment Specific Details
 These are some details which you should know before hand. And I think without knowing this, you might get confused because some of the Keras implementations are environment-dependent.
 
-- Observation/State space: Vectorized     (Unlike Image)
-- Action space: Continuous  (Unlike discrete)
-- Action shape: (num of agents, 2)   (Here num of agents alive at every env step is 1, i.e shape(1, 2))
+[**Check this doc for detailed information.**](./Environment_Details.md)
+
+A small overview of the environment:
+- Observation/State space: Vectorized (unlike Image)
+- Action space: Continuous  (unlike Discrete)
+- Action shape: (num of agents, 2)   (Here num of agents alive at every env step is 1, so shape(1, 2))
 - Reward System: 
     - (1.0/MaxStep) per step (MaxStep is used to reset the env irrespective of achieving the goal state) & the same reward is used if the agent crashes into the walls.
     - +2 if the agent reaches the goal state.
