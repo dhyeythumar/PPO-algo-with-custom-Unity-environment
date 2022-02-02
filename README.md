@@ -48,39 +48,39 @@ A small overview of the environment:
 ## Setup Instructions
 Install the ML-Agents github repo [release_1 branch](https://github.com/Unity-Technologies/ml-agents/tree/release_1_branch), but if you want to use the different branch version then modify the python APIs to interact with the environment.
 
-Clone this repos:
-```bash
-$ git clone --branch release_1 https://github.com/Unity-Technologies/ml-agents.git
+-   **Clone this repos:**
+    ```bash
+    $ git clone --branch release_1 https://github.com/Unity-Technologies/ml-agents.git
 
-$ git clone https://github.com/Dhyeythumar/PPO-algo-with-custom-Unity-environment.git
-```
+    $ git clone https://github.com/Dhyeythumar/PPO-algo-with-custom-Unity-environment.git
+    ```
 
-Create and activate the python virtual environment:
-```bash
-$ python -m venv myvenv
-$ myvenv\Scripts\activate
-```
+-   **Create and activate the python virtual environment:** _(Python version used - 3.8.x)_
+    ```bash
+    $ python -m venv myvenv
+    $ myvenv\Scripts\activate
+    ```
 
-Install the dependencies:
-```bash
-$ pip install -e ./ml-agents/ml-agents-envs
-$ pip install tensorflow
-$ pip install keras
-$ pip install tensorboardX
-```
+-   **Install the dependencies:** _(check the exact dependency versions in [requirements.txt](https://github.com/dhyeythumar/PPO-algo-with-custom-Unity-environment/blob/main/requirements.txt) file)_
+    ```bash
+    (myvenv) $ pip install -e ./ml-agents/ml-agents-envs
+    (myvenv) $ pip install tensorflow
+    (myvenv) $ pip install keras
+    (myvenv) $ pip install tensorboardX
+    ```
 
 
 ## Getting Started
-Now to start the training process use the following commands:
-```bash
-$ cd PPO-algo-with-custom-Unity-environment
-$ python train.py
-```
+-   **Now to start the training process use the following commands:**
+    ```bash
+    (myvenv) $ cd PPO-algo-with-custom-Unity-environment
+    (myvenv) $ python train.py
+    ```
 
-Activate the tensorboard:
-```bash
-$ tensorboard --logdir=./training_data/summaries --port 6006
-```
+-   **Activate the tensorboard:**
+    ```bash
+    $ tensorboard --logdir=./training_data/summaries --port 6006
+    ```
 
 
 ## Motivation and Learning 
