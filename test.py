@@ -28,7 +28,7 @@ class Test_FindflagAgent:
         self.env.reset()  # without this env won't work
         self.behavior_name = self.env.get_behavior_names()[0]
         self.behavior_spec = self.env.get_behavior_spec(self.behavior_name)
-        self.state_dims = self.behavior_spec.observation_shapes[0][0]
+        self.state_dims = np.sum(self.behavior_spec.observation_shapes)
         self.n_actions = self.behavior_spec.action_size
 
         self.actor = load_model(
@@ -60,19 +60,23 @@ class Test_FindflagAgent:
         """
         Apply the actions to the env, step the env and return new set of experience.
 
-        Return the next_state, reward and done response of the env.
+        Return the next_obs, reward and done response of the env.
         """
         self.env.set_actions(self.behavior_name, action)
         self.env.step()
         step_result = self.env.get_steps(self.behavior_name)
         done = self.check_done(step_result)
+        next_obs = np.array([])  # store next observations
+
         if not done:
-            next_state = step_result[0].obs[0]
+            for obs in step_result[0].obs:
+                next_obs = np.append(next_obs, obs)  # shape(54,)
             reward = step_result[0].reward[0]
         else:
-            next_state = step_result[1].obs[0]
+            for obs in step_result[1].obs:
+                next_obs = np.append(next_obs, obs)
             reward = step_result[1].reward[0]
-        return next_state, reward, done
+        return next_obs, reward, done
 
     def get_action(self, action_probs: np.ndarray) -> np.ndarray:
         """Get actions from action probablities."""
@@ -85,16 +89,19 @@ class Test_FindflagAgent:
     def test(self) -> None:
         """Test the trained Actor model."""
         self.env.reset()
-        step_result = self.env.get_steps(self.behavior_name)
-        state = step_result[0].obs[0]
         score = 0
+        step_result = self.env.get_steps(self.behavior_name)
+        observation = np.array([])
+        for obs in step_result[0].obs:
+            observation = np.append(observation, obs)
 
         try:
             while True:
-                action_probs = self.actor.predict(state, steps=1)  # (1, 2)
+                observation = np.expand_dims(observation, axis=0)  # shape(1, 54)
+                action_probs = self.actor.predict(observation, steps=1)  # (1, 2)
                 action = self.get_action(action_probs)
-                next_state, reward, done = self.step(action)
-                state = next_state
+                next_obs, reward, done = self.step(action)
+                observation = next_obs
                 score += reward
                 if done:
                     print("Score :: ", score)
@@ -119,7 +126,7 @@ if __name__ == "__main__":
     )
 
     env = UnityEnvironment(
-        file_name=ENV_NAME, seed=2, side_channels=[engine_config_channel]
+        file_name=ENV_NAME, seed=0, side_channels=[engine_config_channel]
     )
 
     agent = Test_FindflagAgent(env)
